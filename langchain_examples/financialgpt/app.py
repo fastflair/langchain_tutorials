@@ -4,7 +4,7 @@ from langchain.callbacks import get_openai_callback
 from langchain.chains import RetrievalQA
 from langchain.document_loaders import PyPDFLoader
 from langchain.embeddings import OpenAIEmbeddings
-from langchain.llms import OpenAI
+from langchain.llms import AzureOpenAI
 from langchain.vectorstores import Chroma
 import os
 import pandas as pd
@@ -22,15 +22,15 @@ except:
     pass
 
 
-
+st.session_state.key = 'query_result'
 
 #initialize variables in session state
 if 'query_result' not in st.session_state:
     st.session_state['query_result'] = ''
 if 'token_tracking' not in st.session_state:
     st.session_state['token_tracking'] = ''
-st.session_state['curr_dir'] = os.path.dirname(__file__)
-st.session_state['agent_created_files_folder'] = rf"{st.session_state['curr_dir']}\agent_created_files"
+st.session_state['curr_dir'] = os.path.abspath(os.path.dirname(__file__))
+st.session_state['agent_created_files_folder'] = rf"{os.path.abspath(os.path.dirname(__file__))}\agent_created_files"
 
 tab1, tab2 = st.tabs(['Upload', 'API Key'])
 
@@ -129,10 +129,16 @@ if submit_prompt:
 col1, col2 = st.columns(2)
 
 with col1:
-    st.write(st.session_state['query_result'])
+    try:
+        st.write(st.session_state['query_result'])
+    except:
+        st.write('')
     
 with col2:
-    st.write(st.session_state['token_tracking'])
+    try:
+        st.write(st.session_state['token_tracking'])
+    except:
+        st.write('')
 
 
 st.write('')
