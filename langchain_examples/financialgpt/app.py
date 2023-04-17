@@ -12,16 +12,6 @@ import plotly.express as px
 import streamlit as st
 import uuid
 
-
-
-try:
-    api_keys=dotenv_values()
-    os.environ['OPENAI_API_KEY'] = dotenv_values()['openai_api_key'] #set environment variable
-    print('set api')
-except:
-    pass
-
-
 st.session_state.key = 'query_result'
 
 #initialize variables in session state
@@ -32,7 +22,7 @@ if 'token_tracking' not in st.session_state:
 st.session_state['curr_dir'] = os.path.abspath(os.path.dirname(__file__))
 st.session_state['agent_created_files_folder'] = rf"{os.path.abspath(os.path.dirname(__file__))}\agent_created_files"
 
-tab1, tab2 = st.tabs(['Upload', 'API Key'])
+tab1 = st.tabs(['Upload'])
 
 
 with tab1:
@@ -54,13 +44,6 @@ with tab1:
     pages_to_use = []
     create_embedding_button = st.button('Learn data')
     
-with tab2:
-    # Enter OpenAI API here
-    if os.environ['OPENAI_API_KEY'] == '':
-        st.session_state['openai_api_key'] = st.text_input('Enter your OpenAI API key:', placeholder ='sk-...')
-        os.environ['OPENAI_API_KEY'] = st.session_state['openai_api_key']
-
-
 #UI button - create index and agent
 if create_embedding_button:
     
@@ -74,14 +57,14 @@ if create_embedding_button:
     db = Chroma.from_documents(pages_to_use, embeddings)
     retriever = db.as_retriever(search_kwargs={'k': len(pages_to_use)})
     
-    qa = RetrievalQA.from_chain_type(llm=OpenAI(model_name='gpt-3.5-turbo', temperature=0), 
+    qa = RetrievalQA.from_chain_type(llm=AzureOpenAI(deployment_name="CXV_ChatGPT", temperature=0), 
                                  chain_type="stuff", 
                                  retriever=retriever,
                                 verbose=True)  
     st.session_state['qa'] = qa
     
     #create agent
-    llm = OpenAI(temperature=0, verbose=True, model_name = 'gpt-3.5-turbo')
+    llm = AzureOpenAI(temperature=0, verbose=True, deployment_name="CXV_ChatGPT")
     tools = load_tools(['python_repl'])
     agent = initialize_agent(tools, llm, agent='chat-zero-shot-react-description', verbose=True)
     st.session_state['agent'] = agent
